@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.bootcss.com/bulma/0.8.0/css/bulma.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+</body>
+<script crossorigin="anonymous" integrity="sha384-3LaF+GDeugL4KEmnsbb+HuxO42PMnX+W5VYrAF98SHC8Wq47T6D7WpBckxQuazOA"
+        src="https://lib.baomitu.com/react/16.12.0/umd/react.production.min.js"></script>
+<script crossorigin="anonymous"
+        src="https://cdn.bootcss.com/react-dom/16.12.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.bootcss.com/babel-standalone/6.26.0/babel.min.js"></script>
+<script src="https://cdn.bootcss.com/axios/0.19.2/axios.min.js"></script>
+<script src="math.min.js"></script>
+<script src="compute.js"></script>
+<script type="text/babel">
+    class App extends React.Component {
+
+        render = () => {
+            return (
+                <div>
+                    <section className="hero">
+                        <div className="hero-body">
+                            <div className="container">
+                                <h1 className="title">
+                                    PI-πShare
+                                </h1>
+                                <div>
+                                    分布式圆周率计算
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <div className="container has-text-centered">
+                        <Pi/>
+                    </div>
+                </div>
+            )
+        }
+    }
+
+    class Pi extends React.Component {
+
+        computeInfo = {
+            bit: 0,
+            result: 0
+        };
+
+        constructor() {
+            super();
+            this.state = this.computeInfo;
+        }
+
+
+        componentDidMount() {
+            setInterval(() => {
+                axios.get("/getJob").then(resp => {
+                    const bit = resp.data.data.bit;
+                    //先更新位数
+                    this.setState({
+                        bit: bit,
+                        result: "?"
+                    });
+                    return Promise.resolve(bit);
+                }).then((bit)=>{
+                    const result = pi(bit);
+                    return Promise.resolve({bit:bit,result:result});
+                }).then((info)=>{
+                    this.setState({
+                        ...info
+                    })
+                    axios.post("/postJob",{
+                        ...info
+                    })
+                });
+            }, 5000);
+        }
+
+        render = () => {
+            return (
+                <div>
+                    <p>正在计算 {this.state.bit} 位 </p>
+                    <p>{this.state.result}</p>
+                </div>
+            )
+        }
+    }
+
+    ReactDOM.render(
+        <App/>,
+        document.getElementById('root')
+    );
+</script>
+</html>
