@@ -1,10 +1,10 @@
-package cn.tangtj.pishare;
+package cn.tangtj.pishare.dispense;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-public class Count {
+public class PiCompute {
 
     private static final BigDecimal ONE = BigDecimal.ONE;
     private static final BigDecimal TWO = new BigDecimal(2);
