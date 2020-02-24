@@ -3,7 +3,6 @@ package cn.tangtj.pishare.dispense;
 import cn.tangtj.pishare.dao.ComputeResultBitDao;
 import cn.tangtj.pishare.dao.ComputeResultDao;
 import cn.tangtj.pishare.domain.entity.ComputeResult;
-import cn.tangtj.pishare.domain.entity.ComputeResultBit;
 import cn.tangtj.pishare.domain.vo.ComputeJob;
 import cn.tangtj.pishare.domain.vo.ComputeJobResult;
 import org.springframework.stereotype.Service;
@@ -31,11 +30,11 @@ public class ComputeDispense {
 
     private final ComputeResultDao computeResultDao;
 
-    private final ComputeResultBitDao computeResultBitDao;
+    private final ComputeResultHandler computeResultHandler;
 
-    public ComputeDispense(ComputeResultDao computeResultDao, ComputeResultBitDao computeResultBitDao) {
+    public ComputeDispense(ComputeResultDao computeResultDao, ComputeResultHandler computeResultHandler) {
         this.computeResultDao = computeResultDao;
-        this.computeResultBitDao = computeResultBitDao;
+        this.computeResultHandler = computeResultHandler;
         fillJob();
     }
 
@@ -55,22 +54,23 @@ public class ComputeDispense {
 
     public synchronized void reclaim(ComputeJobResult result){
 
-        //加入结果集
-        results.add(result);
-
+        //先检查,是否需要的计算结果
         long bits = result.getBit();
         if (!jobs.contains(bits)){
             return;
         }
+        //加入结果集
+        results.add(result);
 
         //保存到数据库
-        ComputeResultBit bit = new ComputeResultBit();
-        bit.setComputeTime(result.getStartTime());
-        bit.setDigit(result.getBit());
-        bit.setResult(result.getResult());
-        computeResultBitDao.save(bit);
+        try {
+            computeResultHandler.put(result);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         //从任务队列里移除
-        jobs.remove(bit.getDigit());
+        jobs.remove(result.getBit());
 
         //这次的任务完成了
         if (jobs.size() == 0){

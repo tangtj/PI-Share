@@ -45,8 +45,8 @@
     class Pi extends React.Component {
 
         computeInfo = {
-            bit: 0,
-            result: 0
+            bit: "?",
+            result: "?"
         };
 
         constructor() {
@@ -82,7 +82,7 @@
         render = () => {
             return (
                 <div>
-                    <p>正在计算 {this.state.bit} 位 </p>
+                    <p>正在计算第 {this.state.bit} 位 </p>
                     <p>{this.state.result}</p>
                 </div>
             )

@@ -10,5 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ComputeResultDao extends JpaRepository<ComputeResult,Long> {
 
+    /**
+     *  查找当前最后计算位数
+     * @return
+     */
     ComputeResult findTopByOrderByEndIndexDesc();
 }
