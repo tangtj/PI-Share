@@ -1,10 +1,14 @@
 package cn.tangtj.pishare.client;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -12,26 +16,26 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Service
-public class ClientService implements HttpSessionListener {
+public class ClientService {
 
-    private AtomicInteger clients = new AtomicInteger(0);
+    private final Cache<String,String> clients = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
-    @Override
-    public void sessionCreated(HttpSessionEvent se) {
-        log.info("有新客户端注册");
-        clients.decrementAndGet();
+
+    public ClientRegisterInfo register(){
+        String clientId = UUID.randomUUID().toString();
+        clients.put(clientId,clientId);
+        ClientRegisterInfo info = new ClientRegisterInfo();
+        info.setClientId(clientId);
+        return info;
     }
 
-    @Override
-    public final void sessionDestroyed(HttpSessionEvent se) {
-        log.info("有客户端被注销");
-        if (clients.intValue() < 1){
-            clients.set(1);
-        }
-        clients.incrementAndGet();
+    public void heart(String clientId){
+        clients.getIfPresent(clientId);
     }
 
-    public int getClientsNum(){
-        return clients.get();
+    public long clientNum(){
+        return clients.size();
     }
+
+
 }
