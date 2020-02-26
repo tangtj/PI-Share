@@ -17,6 +17,36 @@
 <script src="https://cdn.bootcss.com/mathjs/6.6.0/math.min.js"></script>
 <script src="compute.js"></script>
 <script type="text/babel">
+
+    const ClientInfo = {
+        clientId: ""
+    };
+
+    const register = () => {
+        axios.get("/register").then(resp => {
+            ClientInfo.clientId = resp.data.data.clientId;
+        });
+    };
+
+    const get = (url, config) => {
+        return axios.get(url, {
+            ...config,
+            headers: {
+                token: ClientInfo.clientId
+            }
+        })
+    };
+
+    const post = (url, data, config) => {
+        return axios.post(url, data, {
+            ...config,
+            headers: {
+                token: ClientInfo.clientId
+            }
+        })
+    };
+
+
     class App extends React.Component {
 
         render = () => {
@@ -34,9 +64,29 @@
                             </div>
                         </div>
                     </section>
-                    <div className="container has-text-centered">
-                        <Pi/>
-                    </div>
+                    <section className="hero is-medium">
+                        <div className="hero-head">
+                            <div className="container">
+                                <div className="has-text-centered">
+                                    <Pi/>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="hero-head">
+                            <div className="container">
+
+
+                                <section className="level">
+                                    <section className="level-item">
+                                        <ClientsInfo/>
+                                    </section>
+                                    <section className="level-item">
+                                        <ClientsInfo/>
+                                    </section>
+                                </section>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             )
         }
@@ -56,8 +106,12 @@
 
 
         componentDidMount() {
+
             setInterval(() => {
-                axios.get("/getJob").then(resp => {
+                if (!ClientInfo.clientId) {
+                    register();
+                }
+                get("/getJob").then(resp => {
                     const bit = resp.data.data.bit;
                     //先更新位数
                     this.setState({
@@ -65,14 +119,14 @@
                         result: "?"
                     });
                     return Promise.resolve(bit);
-                }).then((bit)=>{
+                }).then((bit) => {
                     const result = pi(bit);
-                    return Promise.resolve({bit:bit,result:result});
-                }).then((info)=>{
+                    return Promise.resolve({bit: bit, result: result});
+                }).then((info) => {
                     this.setState({
                         ...info
-                    })
-                    axios.post("/postJob",{
+                    });
+                    post("/postJob", {
                         ...info
                     })
                 });
@@ -82,8 +136,68 @@
         render = () => {
             return (
                 <div>
-                    <p>正在计算第 {this.state.bit} 位 </p>
-                    <p>{this.state.result}</p>
+                    <div style={{
+                        fontSize: '30px'
+                    }
+                    }>正在计算第 {this.state.bit} 位
+                    </div>
+                    <div style={{
+                        display: "inline"
+                    }}>计算结果
+                        <div style={{
+                            fontSize: '5em',
+                            display: "inline"
+                        }}> {this.state.result} </div>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                    </div>
+                </div>
+            )
+        }
+    }
+
+    class ClientsInfo extends React.Component {
+
+        info = {
+            num: "?"
+        };
+
+        constructor() {
+            super();
+            this.state = this.info;
+        }
+
+
+        clientsInfo = () => {
+            get("/clientsInfo").then(resp => {
+                console.log(resp);
+                const num = resp.data.data.clients;
+                this.setState({
+                    num: num
+                });
+            })
+        };
+
+        componentDidMount() {
+            setInterval(this.clientsInfo(), 30 * 1000);
+        }
+
+        render = () => {
+            return (
+                <div>
+                    <section className="section">
+                        <div style={
+                            {
+                                display: "inline"
+                            }
+                        }>
+                            当前在线 :
+                        </div>
+                        <div style={
+                            {
+                                display: "inline"
+                            }
+                        }>{this.state.num}</div>
+                    </section>
                 </div>
             )
         }
@@ -94,4 +208,6 @@
         document.getElementById('root')
     );
 </script>
+<style>
+</style>
 </html>

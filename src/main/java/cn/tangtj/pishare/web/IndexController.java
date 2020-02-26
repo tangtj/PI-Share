@@ -15,11 +15,14 @@ import java.util.UUID;
 public class IndexController {
 
 
-    @Autowired
-    private ComputeDispense computeDispense;
+    private final ComputeDispense computeDispense;
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
+
+    public IndexController(ClientService clientService, ComputeDispense computeDispense) {
+        this.clientService = clientService;
+        this.computeDispense = computeDispense;
+    }
 
     /**
      *  注册客户端
@@ -32,13 +35,19 @@ public class IndexController {
 
     @GetMapping("/getJob")
     public R getJob(@RequestHeader("token") String clientId){
+        clientService.heart(clientId);
         return R.ok(computeDispense.dispense());
     }
 
     @PostMapping("/postJob")
     public R postJob(@RequestBody ComputeJobResult result,@RequestHeader("token") String clientId){
-
+        clientService.heart(clientId);
         computeDispense.reclaim(result);
         return R.ok();
+    }
+
+    @GetMapping("/clientsInfo")
+    public R getClientsInfo(){
+        return R.ok(clientService.getClientsInfo());
     }
 }

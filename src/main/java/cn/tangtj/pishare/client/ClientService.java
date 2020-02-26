@@ -1,5 +1,6 @@
 package cn.tangtj.pishare.client;
 
+import cn.tangtj.pishare.domain.ClientsInfo;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,12 @@ public class ClientService {
 
     public long clientNum(){
         return clients.size();
+    }
+
+    public ClientsInfo getClientsInfo(){
+        ClientsInfo info = new ClientsInfo();
+        info.setClients(clients.size());
+        return info;
     }
 
 
