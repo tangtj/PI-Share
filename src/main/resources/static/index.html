@@ -81,7 +81,6 @@
                                         <ClientsInfo/>
                                     </section>
                                     <section className="level-item">
-                                        <ClientsInfo/>
                                     </section>
                                 </section>
                             </div>
@@ -139,7 +138,7 @@
                     <div style={{
                         fontSize: '30px'
                     }
-                    }>正在计算第 {this.state.bit} 位
+                    }>正在计算第&nbsp; {this.state.bit} &nbsp;位
                     </div>
                     <div style={{
                         display: "inline"
@@ -178,7 +177,9 @@
         };
 
         componentDidMount() {
-            setInterval(this.clientsInfo(), 30 * 1000);
+            setInterval(()=>{
+                this.clientsInfo()
+            }, 15 * 1000);
         }
 
         render = () => {
@@ -187,16 +188,19 @@
                     <section className="section">
                         <div style={
                             {
-                                display: "inline"
+                                display: "inline",
+                                fontSize: '18px'
                             }
                         }>
-                            当前在线 :
+                            在线客户端
                         </div>
                         <div style={
                             {
-                                display: "inline"
+                                display: "inline",
+                                fontSize: '3em'
                             }
-                        }>{this.state.num}</div>
+                        }>&nbsp;&nbsp;{this.state.num}</div>
+                        &nbsp;
                     </section>
                 </div>
             )
