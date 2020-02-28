@@ -20,7 +20,7 @@ public class ComputeResultBit extends BaseEntity {
      *  第多少位数
      */
     @Column(nullable = false,unique = true)
-    private Long Digit;
+    private Long digit;
 
     /**
      *  计算结果
