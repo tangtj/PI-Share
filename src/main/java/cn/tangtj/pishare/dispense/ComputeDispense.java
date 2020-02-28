@@ -1,10 +1,10 @@
 package cn.tangtj.pishare.dispense;
 
-import cn.tangtj.pishare.dao.ComputeResultBitDao;
 import cn.tangtj.pishare.dao.ComputeResultDao;
 import cn.tangtj.pishare.domain.entity.ComputeResult;
-import cn.tangtj.pishare.domain.vo.ComputeJob;
+import cn.tangtj.pishare.domain.vo.ComputeJobDto;
 import cn.tangtj.pishare.domain.vo.ComputeJobResult;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -26,6 +26,8 @@ public class ComputeDispense {
 
     private ConcurrentLinkedDeque<Long> jobs = new ConcurrentLinkedDeque<>();
 
+    private ConcurrentLinkedDeque<ComputeJob> jobss = new ConcurrentLinkedDeque<>();
+
     private Set<ComputeJobResult> results = new HashSet<>();
 
     private final ComputeResultDao computeResultDao;
@@ -43,11 +45,24 @@ public class ComputeDispense {
      *  分发任务
      * @return
      */
-    public synchronized ComputeJob dispense(){
+    public synchronized ComputeJobDto dispense(){
         if (jobs.isEmpty()){
             fillJob();
         }
-        ComputeJob job = new ComputeJob();
+        ComputeJobDto job = new ComputeJobDto();
+        job.setBit(getBit());
+        return job;
+    }
+
+    /**
+     *  分发任务
+     * @return
+     */
+    public synchronized ComputeJobDto dispense(String tokenId){
+        if (jobs.isEmpty()){
+            fillJob();
+        }
+        ComputeJobDto job = new ComputeJobDto();
         job.setBit(getBit());
         return job;
     }
@@ -99,6 +114,24 @@ public class ComputeDispense {
         Long bit = jobs.pop();
         jobs.addLast(bit);
         return bit;
+    }
+
+    private synchronized Long getBit(String tokenId){
+        //加入多人验算,但是一个浏览器验算完了怎么办
+        ComputeJob job = jobss.pop();
+        var computes = job.getResults();
+        if (computes == null) {
+            jobss.addLast(job);
+            return job.getBit();
+        }else {
+            for (var c:computes){
+                if (StringUtils.equals(tokenId,c.getProcessId())){
+                    jobss.addLast(job);
+                    break;
+                }
+            }
+        }
+        return null;
     }
 
     /**

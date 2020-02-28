@@ -3,7 +3,7 @@ package cn.tangtj.pishare.domain.vo;
 import lombok.Data;
 
 @Data
-public class ComputeJob {
+public class ComputeJobDto {
 
     /**
      *  第多少位

@@ -27,4 +27,9 @@ public class ComputeJobResult {
      */
     private Integer result;
 
+    /**
+     *  处理人
+     */
+    private String processId;
+
 }
