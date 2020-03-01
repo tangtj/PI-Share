@@ -5,6 +5,7 @@ import cn.tangtj.pishare.domain.entity.ComputeResult;
 import cn.tangtj.pishare.domain.vo.ComputeJobDto;
 import cn.tangtj.pishare.domain.vo.ComputeJobResult;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -116,22 +117,19 @@ public class ComputeDispense {
         return bit;
     }
 
-    private synchronized Long getBit(String tokenId){
+    private synchronized ComputeJobDto getJob(String tokenId){
         //加入多人验算,但是一个浏览器验算完了怎么办
         ComputeJob job = jobss.pop();
+        jobss.addLast(job);
         var computes = job.getResults();
-        if (computes == null) {
-            jobss.addLast(job);
-            return job.getBit();
-        }else {
-            for (var c:computes){
-                if (StringUtils.equals(tokenId,c.getProcessId())){
-                    jobss.addLast(job);
-                    break;
-                }
+        for (var c:computes){
+            if (StringUtils.equals(c.getProcessId(),tokenId)){
+                return null;
             }
         }
-        return null;
+        ComputeJobDto d = new ComputeJobDto();
+        d.setBit(job.getBit());
+        return d;
     }
 
     /**
