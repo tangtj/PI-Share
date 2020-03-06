@@ -2,9 +2,9 @@ package cn.tangtj.pishare.domain.entity;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -15,6 +15,9 @@ public class ComputeResultBit extends BaseEntity {
      */
     @Column(nullable = false)
     private Date computeTime;
+
+    @Column(nullable = false)
+    private Boolean checked = true;
 
     /**
      *  第多少位数
@@ -27,4 +30,7 @@ public class ComputeResultBit extends BaseEntity {
      */
     @Column(nullable = false)
     private Integer result;
+
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    private List<ComputeRecord> records;
 }

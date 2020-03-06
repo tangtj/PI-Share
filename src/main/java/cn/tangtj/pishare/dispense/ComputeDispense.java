@@ -8,10 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
@@ -35,6 +32,8 @@ public class ComputeDispense {
 
     private final ComputeResultHandler computeResultHandler;
 
+    private HashMap<String,ComputePool> computePool = new HashMap<>();
+
     public ComputeDispense(ComputeResultDao computeResultDao, ComputeResultHandler computeResultHandler) {
         this.computeResultDao = computeResultDao;
         this.computeResultHandler = computeResultHandler;
@@ -53,6 +52,14 @@ public class ComputeDispense {
         ComputeJobDto job = new ComputeJobDto();
         job.setBit(getBit());
         return job;
+    }
+
+    private synchronized void init(String token){
+        boolean result = computePool.containsKey(token);
+        if (!result){
+            return;
+        }
+
     }
 
     /**

@@ -33,7 +33,7 @@ public class IndexController {
         return R.ok(info);
     }
 
-    @GetMapping("/getJob")
+    @RequestMapping("/getJob")
     public R getJob(@RequestHeader("token") String clientId){
         clientService.heart(clientId);
         return R.ok(computeDispense.dispense());
@@ -42,6 +42,7 @@ public class IndexController {
     @PostMapping("/postJob")
     public R postJob(@RequestBody ComputeJobResult result,@RequestHeader("token") String clientId){
         clientService.heart(clientId);
+        result.setProcessId(clientId);
         computeDispense.reclaim(result);
         return R.ok();
     }
