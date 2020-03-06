@@ -1,11 +1,15 @@
 package cn.tangtj.pishare.dispense;
 
+import cn.tangtj.pishare.dao.ComputeInfoDao;
+import cn.tangtj.pishare.dao.ComputeResultBitDao;
 import cn.tangtj.pishare.dao.ComputeResultDao;
 import cn.tangtj.pishare.domain.entity.ComputeResult;
+import cn.tangtj.pishare.domain.entity.ComputeResultBit;
 import cn.tangtj.pishare.domain.vo.ComputeJobDto;
 import cn.tangtj.pishare.domain.vo.ComputeJobResult;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.units.qual.C;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,6 +36,12 @@ public class ComputeDispense {
 
     private final ComputeResultHandler computeResultHandler;
 
+    @Autowired
+    private ComputeInfoDao computeInfoDao;
+
+    @Autowired
+    private ComputeResultBitDao computeResultBitDao;
+
     private HashMap<String,ComputePool> computePool = new HashMap<>();
 
     public ComputeDispense(ComputeResultDao computeResultDao, ComputeResultHandler computeResultHandler) {
@@ -55,9 +65,18 @@ public class ComputeDispense {
     }
 
     private synchronized void init(String token){
-        boolean result = computePool.containsKey(token);
-        if (!result){
-            return;
+        List<ComputeResultBit> resultBits = computeResultBitDao.findNeedChecked(token);
+        if (resultBits != null && resultBits.size() > 0){
+
+            ComputePool pool = new ComputePool();
+            pool.setToken(token);
+            var bits = new ArrayList<Long>();
+
+            for(var i:resultBits){
+                bits.add(i.getDigit());
+            }
+            pool.setBitPool(bits);
+            computePool.put(token,pool);
         }
 
     }
@@ -70,12 +89,25 @@ public class ComputeDispense {
         if (jobs.isEmpty()){
             fillJob();
         }
+        if (computePool.containsKey(tokenId)){
+            var result  = computePool.get(tokenId);
+            result.getBitPool().removeFirst();
+        }
         ComputeJobDto job = new ComputeJobDto();
         job.setBit(getBit());
         return job;
     }
 
     public synchronized void reclaim(ComputeJobResult result){
+
+        if (computePool.containsKey(result.getProcessId())){
+            try {
+                computeResultHandler.put(result);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
 
         //先检查,是否需要的计算结果
         long bits = result.getBit();
@@ -98,22 +130,7 @@ public class ComputeDispense {
         //这次的任务完成了
         if (jobs.size() == 0){
             // 添加新任务
-            List<ComputeJobResult> r = results.stream()
-                    .sorted(Comparator.comparing(ComputeJobResult::getBit))
-                    .collect(Collectors.toList());
-            results.clear();
-
-            ComputeResult rs = new ComputeResult();
-            rs.setLength((long) r.size());
-            rs.setStartIndex(r.get(0).getBit());
-            rs.setEndIndex(rs.getStartIndex()+r.size());
-
-            final StringBuilder s = new StringBuilder();
-
-            r.forEach(i-> s.append(HEX_NUM[i.getResult()]));
-            rs.setResult(s.toString());
-
-            computeResultDao.save(rs);
+            computeInfoDao.updateMaxBit(10L);
         }
     }
 
