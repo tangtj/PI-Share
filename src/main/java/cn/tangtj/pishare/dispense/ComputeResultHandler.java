@@ -1,11 +1,14 @@
 package cn.tangtj.pishare.dispense;
 
 import cn.tangtj.pishare.dao.ComputeResultBitDao;
+import cn.tangtj.pishare.domain.entity.ComputeRecord;
 import cn.tangtj.pishare.domain.entity.ComputeResultBit;
 import cn.tangtj.pishare.domain.vo.ComputeJobResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -48,12 +51,33 @@ public class ComputeResultHandler {
 
     private void handler(ComputeJobResult result) {
         try {
-            //保存到数据库
-            ComputeResultBit bit = new ComputeResultBit();
-            bit.setComputeTime(result.getStartTime());
-            bit.setDigit(result.getBit());
-            bit.setResult(result.getResult());
-            computeResultBitDao.save(bit);
+
+            var target = computeResultBitDao.findTopByDigit(result.getBit());
+            if (target == null) {
+
+                //保存到数据库
+                ComputeResultBit bit = new ComputeResultBit();
+                bit.setComputeTime(result.getStartTime());
+                bit.setDigit(result.getBit());
+                bit.setResult(result.getResult());
+                var record = new ComputeRecord();
+                record.setToken(result.getProcessId());
+                record.setComputeDate(new Date());
+                record.setResult(result.getResult());
+                computeResultBitDao.save(bit);
+            }else {
+                var records =  target.getRecords();
+                if (records == null){
+                    records = new ArrayList<>();
+                }
+                var record = new ComputeRecord();
+                record.setToken(result.getProcessId());
+                record.setComputeDate(new Date());
+                record.setResult(result.getResult());
+                records.add(record);
+                target.setRecords(records);
+                computeResultBitDao.save(target);
+            }
         } catch (Exception e) {
             log.error("处理计算数据保存异常:", e);
         }
