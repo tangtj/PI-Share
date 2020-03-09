@@ -70,7 +70,7 @@ public class ComputeDispense {
 
             ComputePool pool = new ComputePool();
             pool.setToken(token);
-            var bits = new ArrayList<Long>();
+            var bits = new ArrayDeque<Long>();
 
             for(var i:resultBits){
                 bits.add(i.getDigit());
@@ -89,11 +89,15 @@ public class ComputeDispense {
         if (jobs.isEmpty()){
             fillJob();
         }
+        ComputeJobDto job = new ComputeJobDto();
         if (computePool.containsKey(tokenId)){
             var result  = computePool.get(tokenId);
-            result.getBitPool().removeFirst();
+            Long bit = result.getBitPool().removeFirst();
+            result.getBitPool().add(bit);
+            job.setBit(bit);
+            return job;
         }
-        ComputeJobDto job = new ComputeJobDto();
+
         job.setBit(getBit());
         return job;
     }
